@@ -117,13 +117,53 @@ export const deleteChat = async (chatId) => {
         id: chatId,
       },
     });
-      
-      revalidatePath("/");
+
+    revalidatePath("/");
 
     return {
       success: true,
       data: {},
       message: "Chat deleted successfully",
+    };
+  } catch (error) {
+    console.error("Error fetching chat:", error);
+    return { success: false, message: "Failed to fetch chats" };
+  }
+};
+
+export const getChatById = async (chatId) => {
+  try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return {
+        success: false,
+        message: "User not authenticated",
+      };
+    }
+
+    const chat = await db.chat.findUnique({
+      where: {
+        userId: user.id,
+        id: chatId,
+      },
+      include: {
+        messages: true,
+      },
+    });
+
+    if (!chat) {
+      return {
+        success: false,
+        message: "Chat not found",
+      };
+    }
+
+    revalidatePath("/");
+
+    return {
+      success: true,
+      data: chat,
+      message: "Chat fetched successfully",
     };
   } catch (error) {
     console.error("Error fetching chat:", error);
